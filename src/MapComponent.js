@@ -19,7 +19,7 @@ class HeatMap extends Component {
 
   componentDidMount() {
     // Load GeoJSON news data
-    fetch("/usa_heatmap_news.geojson")
+    fetch("/usa_heatmap_news_links.geojson")
         .then((response) => response.json())
         .then((data) => this.setState({ geoJsonData: data }))
         .catch((error) => console.error("Error loading GeoJSON:", error));
@@ -138,14 +138,19 @@ class HeatMap extends Component {
               >
                 <div style={styles.popupContainer}>
                   <button
-                      onClick={() => this.setState({ selectedNews: null, showPopup: false })}
+                      onClick={() => this.setState({selectedNews: null, showPopup: false})}
                       style={styles.closeButton}
                   >
                     ✕
                   </button>
                   <h3 style={styles.popupTitle}>{selectedNews.properties.title}</h3>
                   <p style={styles.popupSummary}>{selectedNews.properties.summary}</p>
-                  <button style={styles.readMoreButton}>Read More</button>
+                  <button
+                      style={styles.readMoreButton}
+                      onClick={() => window.open(selectedNews.properties.link, "_blank")}
+                  >
+                    Read More
+                  </button>
                 </div>
               </Popup>
           )}
@@ -153,6 +158,7 @@ class HeatMap extends Component {
     );
   }
 }
+
 const styles = {
   popupContainer: {
     width: "300px",
