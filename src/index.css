@@ -11,3 +11,23 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+/* Force the popup to be centered */
+
+
+/* Ensure the content inside the popup is centered */
+.mapboxgl-popup-content {
+  background: none !important; /* ✅ Remove default white background */
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0px !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* Hide the default Mapbox popup arrow */
+.mapboxgl-popup-tip {
+  display: none !important;
+}
