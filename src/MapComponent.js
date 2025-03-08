@@ -1,53 +1,84 @@
-import React from "react";
-import Map, { Marker, Popup } from "react-map-gl/mapbox";
+import React, {Component} from "react";
+import Map, { Marker, Popup, Source, Layer } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 
+// Public Token Taken From
 const MAPBOX_ACCESS_TOKEN = "pk.eyJ1IjoiaGltYXZhcnNoaXRoNzc3IiwiYSI6ImNtNzZsZHBnZjA5NGoya285MXRybG0ycW0ifQ.zzE8yJ1AcOhd_Qe5CGs0SQ"; // Replace with your actual token
 
-const SimpleMap = () => {
-  const [selectedNews, setSelectedNews] = React.useState(null);
+class HeatMap extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      points: this.generateRandomLocations(500), // Generate 50 random points in India
+    };
+  }
 
-  // Example news locations (Static for now, but you can fetch from API)
-  const newsLocations = [
-    { id: 1, title: "Breaking News in New York", coords: [-74.006, 40.7128] },
-    { id: 2, title: "Tech News in London", coords: [-0.1276, 51.5074] },
-    { id: 3, title: "Politics Update in India", coords: [78.9629, 20.5937] },
-  ];
+  // Generate random locations only within India
+  generateRandomLocations = (count) => {
+    const locations = [];
+    for (let i = 0; i < count; i++) {
+      let longitude = (Math.random() * 100).toFixed(6); // Longitude in India (68 to 97)
+      let latitude = (Math.random() * 40).toFixed(6); // Latitude in India (8 to 37)
 
-  return (
-    <Map
-      mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
-      initialViewState={{
-        longitude: 0,
-        latitude: 20,
-        zoom: 2,
-      }}
-      style={{ width: "100vw", height: "100vh" }}
-      mapStyle="mapbox://styles/mapbox/streets-v11"
-    >
-      {newsLocations.map((news) => (
-        <Marker key={news.id} longitude={news.coords[0]} latitude={news.coords[1]}>
-          <button
-            onClick={() => setSelectedNews(news)}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
-          >
-            📍
-          </button>
-        </Marker>
-      ))}
+      locations.push({ longitude: parseFloat(longitude), latitude: parseFloat(latitude) });
+    }
+    return locations;
+  };
 
-      {selectedNews && (
-        <Popup
-          longitude={selectedNews.coords[0]}
-          latitude={selectedNews.coords[1]}
-          closeOnClick={true}
-          onClose={() => setSelectedNews(null)}
-        >
-          {selectedNews.title}
-        </Popup>
-      )}
-    </Map>
-  );
-};
+  render() {
+    const { points } = this.state;
 
-export default SimpleMap;
+    // Convert points to GeoJSON format for heatmap
+    const geoJsonData = {
+      type: "FeatureCollection",
+      features: points.map((point) => ({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [point.longitude, point.latitude],
+        },
+      })),
+    };
+
+    return (
+      <Map
+        mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+        initialViewState={{
+          longitude: 78.9629, // Center on India
+          latitude: 20.5937,
+          zoom: 4, // Adjusted zoom to fit India
+        }}
+        style={{ width: "100vw", height: "100vh" }}
+        mapStyle="mapbox://styles/mapbox/dark-v11" // Dark theme
+        projection={{ name: "globe" }} // Enables 3D globe projection
+      >
+        {/* Heatmap Source */}
+        <Source id="heatmap" type="geojson" data={geoJsonData}>
+          <Layer
+            id="heatmap-layer"
+            type="heatmap"
+            paint={{
+              "heatmap-weight": 1, // Weight of each point
+              "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 1, 1, 10, 3], // Controls intensity with zoom
+              "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 2, 10, 10, 30], // Radius of heatmap points
+              "heatmap-opacity": 0.9, // Slightly more opaque
+              "heatmap-color": [
+                "interpolate",
+                ["linear"],
+                ["heatmap-density"],
+                0, "rgba(0,0,255,0)",   // Invisible at low density
+                0.2, "rgba(0,128,255,0.5)",  // Light blue
+                0.4, "rgba(0,255,128,0.7)",  // Aqua green
+                0.6, "rgba(255,255,0,0.8)",  // Yellow
+                0.8, "rgba(255,128,0,0.9)",  // Orange
+                1, "rgba(255,0,0,1)"  // Red (High Density)
+              ],
+            }}
+          />
+        </Source>
+      </Map>
+    );
+  }
+}
+
+export default HeatMap;
