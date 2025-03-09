@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import Map, { Marker, Popup, Source, Layer } from "react-map-gl/mapbox";
+import Map, { Popup, Source, Layer } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 // Public Token Taken From
