@@ -37,7 +37,7 @@ class HeatMap extends Component {
 
   // Define Zoom Levels
   zoomLevels = {
-    world: 2, // World (Default)
+    world: 2, // World Level (Default)
     country: 4, // Country Level
     state: 6, // State Level
     city: 10, // City Level
