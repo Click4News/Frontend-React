@@ -1,160 +1,126 @@
-import React, {Component} from "react";
-import Map, { Popup, Source, Layer } from "react-map-gl/mapbox";
+import React, { Component, createRef } from "react";
+import Map, { Source, Layer } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
+import MapFilters from "./MapFilters"; // Import filter component
 
 // Public Token Taken From
-const MAPBOX_ACCESS_TOKEN = "pk.eyJ1IjoiaGltYXZhcnNoaXRoNzc3IiwiYSI6ImNtNzZsZHBnZjA5NGoya285MXRybG0ycW0ifQ.zzE8yJ1AcOhd_Qe5CGs0SQ"; // Replace with your actual token
+const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 
 class HeatMap extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      geoJsonData: null,  // Stores heatmap data
-      clickedLocation: null, // Stores clicked coordinates
-      circleRadius: 0, // Expanding circle effect
-      showPopup: false, // Controls popup visibility
-      selectedNews: null, // Stores nearest news for popup
+      points: this.generateRandomLocations(250), // Generate points
+      theme: "light", // Default theme
+      zoomLevel: "world", // Default zoom level
+      viewState: {
+        longitude: -105.2705, // Default center (USA-Boulder)
+        latitude: 40.0150,
+        zoom: 2,
+      },
     };
+    this.mapRef = createRef(); // Reference to Mapbox instance
   }
 
-  componentDidMount() {
-    // Load GeoJSON news data
-    fetch("/usa_heatmap_news_links.geojson")
-        .then((response) => response.json())
-        .then((data) => this.setState({ geoJsonData: data }))
-        .catch((error) => console.error("Error loading GeoJSON:", error));
-  }
-
-  handleMapClick = (event) => {
-    event.originalEvent.stopPropagation();
-    const { lng, lat } = event.lngLat;
-
-    // Find the nearest news point
-    const closestNews = this.state.geoJsonData.features.reduce((prev, curr) => {
-      const prevDist = Math.hypot(prev.geometry.coordinates[0] - lng, prev.geometry.coordinates[1] - lat);
-      const currDist = Math.hypot(curr.geometry.coordinates[0] - lng, curr.geometry.coordinates[1] - lat);
-      return currDist < prevDist ? curr : prev;
-    });
-
-    this.setState({
-      clickedLocation: { longitude: lng, latitude: lat },
-      selectedNews: closestNews,
-      circleRadius: 5, // Start animation small
-      showPopup: false, // Hide popup initially
-    });
-
-    // Start animation and delay popup appearance
-    this.animateCircle(() => {
-      this.setState({ showPopup: true });
-    });
+  // Define Zoom Levels (Only Affects Zoom, Not Center)
+  zoomLevels = {
+    world: 2, // World (Default)
+    country: 4, // Country Level
+    state: 6, // State Level
+    city: 10, // City Level
   };
 
-  animateCircle = (callback) => {
-    let radius = 5;
-    const interval = setInterval(() => {
-      radius += 5;
-      this.setState({ circleRadius: radius });
+  // Generate random locations (for testing)
+  generateRandomLocations = (count) => {
+    const locations = [];
+    for (let i = 0; i < count; i++) {
+      let longitude = (Math.random() * (-80.0 + 114.0) - 110.0).toFixed(6);
+      let latitude = (Math.random() * (45.0 - 28.0) + 30.0).toFixed(6);
+      locations.push({ longitude: parseFloat(longitude), latitude: parseFloat(latitude) });
+    }
+    return locations;
+  };
 
-      if (radius > 50) { // Stop animation at max size
-        clearInterval(interval);
-        if (callback) callback(); // Show popup after animation
-      }
-    }, 50);
+  // Handle Theme Change
+  handleThemeChange = (theme) => {
+    this.setState({ theme });
+  };
+
+  // Handle Zoom Level Change (Smooth Zoom)
+  handleZoomChange = (selectedZoom) => {
+    this.setState({ zoomLevel: selectedZoom });
+
+    if (this.mapRef.current) {
+      this.mapRef.current.flyTo({
+        zoom: this.zoomLevels[selectedZoom],
+        essential: true, // Ensures smooth animation
+        duration: 1000, // Smooth transition in 1 second
+      });
+    }
   };
 
   render() {
-    const { geoJsonData, clickedLocation, circleRadius, selectedNews, showPopup } = this.state;
+    const { points, theme, viewState, zoomLevel } = this.state;
+
+    // Map styles based on theme
+    const mapStyles = {
+      light: "mapbox://styles/mapbox/outdoors-v12",
+      dark: "mapbox://styles/mapbox/dark-v11",
+    };
+
+    // Convert Points to GeoJSON Format
+    const geoJsonData = {
+      type: "FeatureCollection",
+      features: points.map((point) => ({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [point.longitude, point.latitude] },
+      })),
+    };
 
     return (
+      <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
+        {/* Filters Panel */}
+        <MapFilters
+          theme={theme}
+          zoomLevel={zoomLevel}
+          onThemeChange={this.handleThemeChange}
+          onZoomChange={this.handleZoomChange}
+        />
+
+        {/* Map Component */}
         <Map
-            mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
-            initialViewState={{
-              longitude: -98.35, // Center on USA
-              latitude: 39.5,
-              zoom: 4,
-            }}
-            style={{ width: "100vw", height: "100vh" }}
-            mapStyle="mapbox://styles/mapbox/dark-v11"
-            onClick={this.handleMapClick} // Handle map click
+          ref={this.mapRef} // Reference for flyTo()
+          mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+          initialViewState={viewState} // Start at USA
+          style={{ width: "100%", height: "100%" }}
+          mapStyle={mapStyles[theme]} // Dynamic Theme
         >
           {/* Heatmap Source */}
-          {geoJsonData && (
-              <Source id="heatmap" type="geojson" data={geoJsonData}>
-                <Layer
-                    id="heatmap-layer"
-                    type="heatmap"
-                    paint={{
-                      "heatmap-weight": 1,
-                      "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 1, 1, 10, 3],
-                      "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 2, 10, 10, 30],
-                      "heatmap-opacity": 0.9,
-                      "heatmap-color": [
-                        "interpolate",
-                        ["linear"],
-                        ["heatmap-density"],
-                        0, "rgba(0,0,255,0)",
-                        0.2, "rgba(0,128,255,0.5)",
-                        0.4, "rgba(0,255,128,0.7)",
-                        0.6, "rgba(255,255,0,0.8)",
-                        0.8, "rgba(255,128,0,0.9)",
-                        1, "rgba(255,0,0,1)"
-                      ],
-                    }}
-                />
-              </Source>
-          )}
-
-          {/* Click Animation Effect (Expanding Circle) */}
-          {clickedLocation && (
-              <Source id="circle-source" type="geojson" data={{
-                type: "FeatureCollection",
-                features: [{
-                  type: "Feature",
-                  geometry: { type: "Point", coordinates: [clickedLocation.longitude, clickedLocation.latitude] }
-                }]
-              }}>
-                <Layer
-                    id="circle-layer"
-                    type="circle"
-                    paint={{
-                      "circle-radius": circleRadius,
-                      "circle-color": "rgba(255, 255, 255, 0.5)", // White glow
-                      "circle-opacity": ["interpolate", ["linear"], ["zoom"], 0, 0.5, 5, 0],
-                      "circle-stroke-width": 2,
-                      "circle-stroke-color": "rgba(255, 255, 255, 1)",
-                    }}
-                />
-              </Source>
-          )}
-
-          {/* News Popup appears after animation */}
-          {selectedNews && showPopup && (
-              <Popup
-                  longitude={selectedNews.geometry.coordinates[0]}
-                  latitude={selectedNews.geometry.coordinates[1]}
-                  closeButton={false}  // Disable Mapbox's default close button
-                  closeOnClick={false}
-                  className="custom-popup" // Apply only custom styles
-              >
-                <div style={styles.popupContainer}>
-                  <button
-                      onClick={() => this.setState({selectedNews: null, showPopup: false})}
-                      style={styles.closeButton}
-                  >
-                    ✕
-                  </button>
-                  <h3 style={styles.popupTitle}>{selectedNews.properties.title}</h3>
-                  <p style={styles.popupSummary}>{selectedNews.properties.summary}</p>
-                  <button
-                      style={styles.readMoreButton}
-                      onClick={() => window.open(selectedNews.properties.link, "_blank")}
-                  >
-                    Read More
-                  </button>
-                </div>
-              </Popup>
-          )}
+          <Source id="heatmap" type="geojson" data={geoJsonData}>
+            <Layer
+              id="heatmap-layer"
+              type="heatmap"
+              paint={{
+                "heatmap-weight": 1,
+                "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 1, 1, 10, 3],
+                "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 2, 10, 10, 30],
+                "heatmap-opacity": 0.9,
+                "heatmap-color": [
+                  "interpolate",
+                  ["linear"],
+                  ["heatmap-density"],
+                  0, "rgba(0,0,255,0)",
+                  0.2, "rgba(0,128,255,0.5)",
+                  0.4, "rgba(0,255,128,0.7)",
+                  0.6, "rgba(255,255,0,0.8)",
+                  0.8, "rgba(255,128,0,0.9)",
+                  1, "rgba(255,0,0,1)"
+                ],
+              }}
+            />
+          </Source>
         </Map>
+      </div>
     );
   }
 }
