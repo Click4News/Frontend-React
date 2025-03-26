@@ -114,7 +114,7 @@ class HeatMap extends Component {
   };
 
   render() {
-    const { points, theme, viewState, zoomLevel, geoJsonData, clickedLocation, circleRadius, selectedNews, showPopup } = this.state;
+    const { points, theme, viewState, zoomLevel, clickedLocation, circleRadius, selectedNews, showPopup } = this.state;
 
     // Map styles based on theme
     const mapStyles = {
