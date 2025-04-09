@@ -1,68 +1,88 @@
 import React, { Component, createRef } from "react";
 import Map, { Popup, Source, Layer } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import MapFilters from "./MapFilters"; // Import filter component
+import MapFilters from "./MapFilters";
 
-// Load Mapbox Token from .env
+// 🔧 Load token from .env
 const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 
 class HeatMap extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      points: this.generateRandomLocations(250), // Generate points
-      theme: "light", // Default theme
-      zoomLevel: "world", // Default zoom level
+      theme: "light",
+      zoomLevel: "world",
       viewState: {
-        longitude: -105.2705, // Default center (Boulder, CO)
-        latitude: 40.0150,
+        longitude: -105.2705,
+        latitude: 40.015,
         zoom: 2,
       },
-      geoJsonData: null,  // Stores heatmap data
-      clickedLocation: null, // Stores clicked coordinates
-      circleRadius: 0, // Expanding circle effect
-      showPopup: false, // Controls popup visibility
-      selectedNews: null, // Stores nearest news for popup
+      geoJsonData: null,
+      clickedLocation: null,
+      circleRadius: 0,
+      showPopup: false,
+      selectedNews: null,
     };
-    this.mapRef = createRef(); // Reference to Mapbox instance
+    this.mapRef = createRef();
   }
 
   componentDidMount() {
-    // Load GeoJSON news data
-    fetch("/usa_heatmap_news_links.geojson")
+    fetch("https://fastapi-service-34404463322.us-central1.run.app/geojson")
       .then((response) => response.json())
-      .then((data) => this.setState({ geoJsonData: data }))
-      .catch((error) => console.error("Error loading GeoJSON:", error));
+      .then((data) => {
+        const jitteredFeatures = this.jitterOverlappingPoints(data.features);
+        const jitteredData = {
+          type: "FeatureCollection",
+          features: jitteredFeatures,
+        };
+        this.setState({ geoJsonData: jitteredData });
+      })
+      .catch((error) => console.error("Error loading GeoJSON from API:", error));
   }
 
-  // Define Zoom Levels
+  jitterOverlappingPoints = (features) => {
+    const jittered = [];
+    const seenCoords = new Set();
+
+    features.forEach((feature) => {
+      const [lng, lat] = feature.geometry.coordinates;
+      const key = `${lng.toFixed(5)},${lat.toFixed(5)}`;
+
+      let jitteredLng = lng;
+      let jitteredLat = lat;
+
+      if (seenCoords.has(key)) {
+        const offsetLng = (Math.random() - 0.5) * 0.02;
+        const offsetLat = (Math.random() - 0.5) * 0.02;
+        jitteredLng += offsetLng;
+        jitteredLat += offsetLat;
+      }
+
+      seenCoords.add(key);
+
+      jittered.push({
+        ...feature,
+        geometry: {
+          ...feature.geometry,
+          coordinates: [jitteredLng, jitteredLat],
+        },
+      });
+    });
+
+    return jittered;
+  };
+
   zoomLevels = {
-    world: 2, // World Level (Default)
-    country: 4, // Country Level
-    state: 6, // State Level
-    city: 10, // City Level
+    world: 2,
+    country: 4,
+    state: 6,
+    city: 10,
   };
 
-  // Generate random locations (for testing)
-  generateRandomLocations = (count) => {
-    const locations = [];
-    for (let i = 0; i < count; i++) {
-      let longitude = (Math.random() * (-80.0 + 114.0) - 110.0).toFixed(6);
-      let latitude = (Math.random() * (45.0 - 28.0) + 30.0).toFixed(6);
-      locations.push({ longitude: parseFloat(longitude), latitude: parseFloat(latitude) });
-    }
-    return locations;
-  };
+  handleThemeChange = (theme) => this.setState({ theme });
 
-  // Handle Theme Change
-  handleThemeChange = (theme) => {
-    this.setState({ theme });
-  };
-
-  // Handle Zoom Level Change (Smooth Zoom)
   handleZoomChange = (selectedZoom) => {
     this.setState({ zoomLevel: selectedZoom });
-
     if (this.mapRef.current) {
       this.mapRef.current.flyTo({
         zoom: this.zoomLevels[selectedZoom],
@@ -72,14 +92,11 @@ class HeatMap extends Component {
     }
   };
 
-  // Handle Map Click (Find Nearest News)
   handleMapClick = (event) => {
     event.originalEvent.stopPropagation();
     const { lng, lat } = event.lngLat;
-
     if (!this.state.geoJsonData) return;
 
-    // Find the nearest news point
     const closestNews = this.state.geoJsonData.features.reduce((prev, curr) => {
       const prevDist = Math.hypot(prev.geometry.coordinates[0] - lng, prev.geometry.coordinates[1] - lat);
       const currDist = Math.hypot(curr.geometry.coordinates[0] - lng, curr.geometry.coordinates[1] - lat);
@@ -89,51 +106,43 @@ class HeatMap extends Component {
     this.setState({
       clickedLocation: { longitude: lng, latitude: lat },
       selectedNews: closestNews,
-      circleRadius: 5, // Start animation small
-      showPopup: false, // Hide popup initially
+      circleRadius: 5,
+      showPopup: false,
     });
 
-    // Start animation and delay popup appearance
-    this.animateCircle(() => {
-      this.setState({ showPopup: true });
-    });
+    this.animateCircle(() => this.setState({ showPopup: true }));
   };
 
-  // Expanding Circle Animation
   animateCircle = (callback) => {
     let radius = 5;
     const interval = setInterval(() => {
       radius += 5;
       this.setState({ circleRadius: radius });
-
-      if (radius > 50) { // Stop animation at max size
+      if (radius > 50) {
         clearInterval(interval);
-        if (callback) callback(); // Show popup after animation
+        if (callback) callback();
       }
     }, 50);
   };
 
   render() {
-    const { points, theme, viewState, zoomLevel, clickedLocation, circleRadius, selectedNews, showPopup } = this.state;
+    const {
+      theme, viewState, zoomLevel,
+      clickedLocation, circleRadius,
+      selectedNews, showPopup, geoJsonData
+    } = this.state;
 
-    // Map styles based on theme
     const mapStyles = {
       light: "mapbox://styles/mapbox/outdoors-v12",
       dark: "mapbox://styles/mapbox/dark-v11",
     };
 
-    // Convert Points to GeoJSON Format
-    const geoJsonPoints = {
-      type: "FeatureCollection",
-      features: points.map((point) => ({
-        type: "Feature",
-        geometry: { type: "Point", coordinates: [point.longitude, point.latitude] },
-      })),
-    };
+    if (!geoJsonData) {
+      return <div style={{ color: "#fff", textAlign: "center", marginTop: "2rem" }}>Loading map data...</div>;
+    }
 
     return (
       <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
-        {/* Filters Panel */}
         <MapFilters
           theme={theme}
           zoomLevel={zoomLevel}
@@ -141,7 +150,6 @@ class HeatMap extends Component {
           onZoomChange={this.handleZoomChange}
         />
 
-        {/* Map Component */}
         <Map
           ref={this.mapRef}
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
@@ -150,8 +158,11 @@ class HeatMap extends Component {
           mapStyle={mapStyles[theme]}
           onClick={this.handleMapClick}
         >
-          {/* Heatmap Source */}
-          <Source id="heatmap" type="geojson" data={geoJsonPoints}>
+          <Source
+            id="heatmap"
+            type="geojson"
+            data={geoJsonData}
+          >
             <Layer
               id="heatmap-layer"
               type="heatmap"
@@ -164,7 +175,6 @@ class HeatMap extends Component {
             />
           </Source>
 
-          {/* Click Animation Effect (Expanding Circle) */}
           {clickedLocation && (
             <Source id="circle-source" type="geojson" data={{
               type: "FeatureCollection",
@@ -187,7 +197,6 @@ class HeatMap extends Component {
             </Source>
           )}
 
-          {/* News Popup */}
           {selectedNews && showPopup && (
             <Popup
               longitude={selectedNews.geometry.coordinates[0]}
@@ -222,10 +231,9 @@ class HeatMap extends Component {
 const styles = {
   popupContainer: {
     width: "300px",
-    backgroundColor: "#1a1a1a", // Dark mode background
+    backgroundColor: "#1a1a1a",
     padding: "15px",
     borderRadius: "8px",
-    // boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // Smooth shadow
     textAlign: "left",
     color: "#ffffff",
   },
@@ -233,7 +241,7 @@ const styles = {
     fontSize: "16px",
     fontWeight: "bold",
     marginBottom: "8px",
-    color: "#ffcc00", // Yellowish-gold color
+    color: "#ffcc00",
   },
   popupSummary: {
     fontSize: "14px",
@@ -252,7 +260,16 @@ const styles = {
     fontSize: "14px",
     fontWeight: "bold",
   },
-
+  closeButton: {
+    position: "absolute",
+    top: 5,
+    right: 10,
+    background: "transparent",
+    border: "none",
+    color: "#fff",
+    fontSize: "16px",
+    cursor: "pointer"
+  }
 };
 
 export default HeatMap;
