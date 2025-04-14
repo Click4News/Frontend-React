@@ -7,13 +7,20 @@ permissions:
   checks: write
   contents: read
   pull-requests: write
+
 jobs:
   build_and_preview:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci && npm run build
+
+      # 👇 Inject secret for PR build
+      - name: Install and Build
+        run: npm ci && npm run build
+        env:
+          REACT_APP_MAPBOX_ACCESS_TOKEN: ${{ secrets.REACT_APP_MAPBOX_ACCESS_TOKEN }}
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
