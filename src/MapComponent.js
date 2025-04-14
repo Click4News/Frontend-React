@@ -10,6 +10,8 @@ class HeatMap extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      sortedNearbyNews: [],
+      currentNewsIndex: 0,
       theme: "light",
       zoomLevel: "world",
       viewState: {
@@ -97,20 +99,23 @@ class HeatMap extends Component {
     const { lng, lat } = event.lngLat;
     if (!this.state.geoJsonData) return;
 
-    const closestNews = this.state.geoJsonData.features.reduce((prev, curr) => {
-      const prevDist = Math.hypot(prev.geometry.coordinates[0] - lng, prev.geometry.coordinates[1] - lat);
-      const currDist = Math.hypot(curr.geometry.coordinates[0] - lng, curr.geometry.coordinates[1] - lat);
-      return currDist < prevDist ? curr : prev;
+    // ✅ Get all nearby features (within rough radius)
+    const nearbyNews = this.state.geoJsonData.features.filter((f) => {
+      const [fx, fy] = f.geometry.coordinates;
+      const dist = Math.hypot(fx - lng, fy - lat);
+      return dist < 3; // adjust as needed (3 is loose distance filter)
     });
+
+    if (nearbyNews.length === 0) return;
 
     this.setState({
       clickedLocation: { longitude: lng, latitude: lat },
-      selectedNews: closestNews,
+      sortedNearbyNews: nearbyNews,
+      currentNewsIndex: 0,
+      selectedNews: nearbyNews[0],
       circleRadius: 5,
       showPopup: false,
-    });
-
-    this.animateCircle(() => this.setState({ showPopup: true }));
+    }, () => this.animateCircle(() => this.setState({ showPopup: true })));
   };
 
   animateCircle = (callback) => {
@@ -219,6 +224,21 @@ class HeatMap extends Component {
                 >
                   Read More
                 </button>
+                {this.state.sortedNearbyNews.length > 1 && (
+                    <button
+                        style={{ ...styles.readMoreButton, backgroundColor: "#333", color: "#fff", marginTop: "8px" }}
+                        onClick={() => {
+                          const { currentNewsIndex, sortedNearbyNews } = this.state;
+                          const nextIndex = (currentNewsIndex + 1) % sortedNearbyNews.length;
+                          this.setState({
+                            currentNewsIndex: nextIndex,
+                            selectedNews: sortedNearbyNews[nextIndex],
+                          });
+                        }}
+                    >
+                      ▶ Next News
+                    </button>
+                )}
               </div>
             </Popup>
           )}
