@@ -29,18 +29,40 @@ class HeatMap extends Component {
   }
 
   componentDidMount() {
-    fetch("https://fastapi-service-34404463322.us-central1.run.app/geojson")
-      .then((response) => response.json())
-      .then((data) => {
-        const jitteredFeatures = this.jitterOverlappingPoints(data.features);
-        const jitteredData = {
-          type: "FeatureCollection",
-          features: jitteredFeatures,
-        };
-        this.setState({ geoJsonData: jitteredData });
-      })
-      .catch((error) => console.error("Error loading GeoJSON from API:", error));
+    this.fetchGeoJsonData(); // 🔁 initial load
+
+    this.updateInterval = setInterval(() => {
+      this.fetchGeoJsonData();
+    }, 30000);
   }
+
+  componentWillUnmount() {
+    clearInterval(this.updateInterval); // 🚫 clean up interval when unmounted
+  }
+
+  fetchGeoJsonData = () => {
+    fetch("https://fastapi-service-34404463322.us-central1.run.app/geojson")
+        .then((response) => response.json())
+        .then((data) => {
+          const jitteredFeatures = this.jitterOverlappingPoints(data.features);
+          const jitteredData = {
+            type: "FeatureCollection",
+            features: jitteredFeatures,
+          };
+          this.setState({ geoJsonData: jitteredData });
+
+
+          if (this.state.selectedNews) {
+            const stillExists = jitteredData.features.find(
+                (f) => f.properties.link === this.state.selectedNews.properties.link
+            );
+            if (!stillExists) {
+              this.setState({ selectedNews: null, showPopup: false });
+            }
+          }
+        })
+        .catch((error) => console.error("Error loading GeoJSON from API:", error));
+  };
 
   jitterOverlappingPoints = (features) => {
     const jittered = [];
