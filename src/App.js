@@ -23,26 +23,22 @@ function App() {
 
   return (
       <div style={styles.appContainer}>
-        {/* Heading */}
+        {/* 🧑 Floating User Info */}
+        {user && (
+            <div style={styles.floatingUserInfo}>
+              <img src={user.photoURL} alt="User" style={styles.avatar} />
+              <span style={styles.userName}>{user.displayName}</span>
+              <button onClick={handleSignOut} style={styles.signOutButton}>
+                Sign Out
+              </button>
+            </div>
+        )}
+
+        {/* Hero Section */}
         <div style={styles.heroSection}>
           <div style={styles.overlay}>
             <h1 style={styles.title}>Global News Map</h1>
             <p style={styles.subtitle}>Trending and Popular World Events Visualization</p>
-
-            {/* 🧑 User Info + Logout */}
-            {user && (
-                <div style={styles.userInfo}>
-                  <img
-                      src={user.photoURL}
-                      alt="User"
-                      style={styles.avatar}
-                  />
-                  <span style={styles.userName}>{user.displayName}</span>
-                  <button onClick={handleSignOut} style={styles.signOutButton}>
-                    Sign Out
-                  </button>
-                </div>
-            )}
           </div>
         </div>
 
@@ -66,11 +62,12 @@ const styles = {
     alignItems: "center",
     backgroundColor: "#f4f4f4",
     minHeight: "100vh",
+    position: "relative",
   },
   heroSection: {
     width: "100%",
     textAlign: "center",
-    padding: "8px 6px",
+    padding: "40px 10px",
     backgroundImage: "url('/images/news.jpg')",
     backgroundSize: "cover",
     backgroundPosition: "center",
@@ -81,37 +78,44 @@ const styles = {
   },
   overlay: {
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: "10px 15px",
-    borderRadius: "4px",
+    padding: "20px 25px",
+    borderRadius: "8px",
     display: "inline-block",
   },
   title: {
-    fontSize: "20px",
+    fontSize: "32px",
     fontWeight: "bold",
     color: "#ffffff",
-    textShadow: "1px 1px 3px rgba(0,0,0,0.6)",
+    textShadow: "1px 1px 4px rgba(0,0,0,0.6)",
     margin: "0",
   },
   subtitle: {
-    fontSize: "12px",
+    fontSize: "16px",
     fontWeight: "lighter",
     color: "#f0f0f0",
-    textShadow: "1px 1px 2px rgba(0,0,0,0.4)",
-    marginTop: "3px",
+    textShadow: "1px 1px 3px rgba(0,0,0,0.4)",
+    marginTop: "8px",
   },
   mapContainer: {
     width: "100%",
-    height: "calc(100vh - 80px)",
+    height: "calc(100vh - 160px)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
   },
-  userInfo: {
-    marginTop: "10px",
+  floatingUserInfo: {
+    position: "absolute",
+    top: "15px",
+    right: "25px",
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    justifyContent: "center",
+    gap: "12px",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(8px)",
+    padding: "6px 14px",
+    borderRadius: "20px",
+    zIndex: 10,
+    color: "#fff",
   },
   avatar: {
     width: "32px",
