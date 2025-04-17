@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
 import HeatMap from "./MapComponent";
-import GoogleSignIn from "./GoogleSignIn";
+import EmailAuth from "./EmailAuth"; // Includes both email & Google login
 import { auth } from "./firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
 function App() {
   const [user, setUser] = useState(null);
 
-  // 🔁 Auto-login listener
+  // Auto-login listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
     });
-    return () => unsubscribe(); // cleanup
+    return () => unsubscribe();
   }, []);
 
   const handleSignOut = () => {
@@ -23,11 +23,11 @@ function App() {
 
   return (
       <div style={styles.appContainer}>
-        {/* 🧑 Floating User Info */}
+        {/* Floating User Info */}
         {user && (
             <div style={styles.floatingUserInfo}>
-              <img src={user.photoURL} alt="User" style={styles.avatar} />
-              <span style={styles.userName}>{user.displayName}</span>
+              <img src={user.photoURL || "/default-avatar.png"} alt="User" style={styles.avatar} />
+              <span style={styles.userName}>{user.displayName || user.email}</span>
               <button onClick={handleSignOut} style={styles.signOutButton}>
                 Sign Out
               </button>
@@ -42,19 +42,14 @@ function App() {
           </div>
         </div>
 
-        {/* Map or Login */}
+        {/* Content */}
         <div style={styles.mapContainer}>
-          {user ? (
-              <HeatMap user={user} />
-          ) : (
-              <GoogleSignIn onSignIn={setUser} />
-          )}
+          {user ? <HeatMap user={user} /> : <EmailAuth onSignIn={setUser} />}
         </div>
       </div>
   );
 }
 
-// Inline CSS for Styling
 const styles = {
   appContainer: {
     display: "flex",
@@ -74,7 +69,6 @@ const styles = {
     backgroundRepeat: "no-repeat",
     position: "relative",
     color: "white",
-    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
   },
   overlay: {
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -122,6 +116,7 @@ const styles = {
     height: "32px",
     borderRadius: "50%",
     border: "1px solid #fff",
+    objectFit: "cover",
   },
   userName: {
     color: "#fff",
