@@ -1,26 +1,55 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import HeatMap from "./MapComponent";
+import EmailAuth from "./EmailAuth"; // Includes both email & Google login
+import { auth } from "./firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  // Auto-login listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSignOut = () => {
+    signOut(auth)
+        .then(() => setUser(null))
+        .catch((error) => console.error("Error signing out:", error));
+  };
+
   return (
-    <div style={styles.appContainer}>
-      {/* Heading Section with Background Image and Compact Overlay */}
-      <div style={styles.heroSection}>
-        <div style={styles.overlay}>
-          <h1 style={styles.title}>Global News Map</h1>
-          <p style={styles.subtitle}>Trending and Popular World Events Visualization</p>
+      <div style={styles.appContainer}>
+        {/* Floating User Info */}
+        {user && (
+            <div style={styles.floatingUserInfo}>
+              <img src={user.photoURL || "/default-avatar.png"} alt="User" style={styles.avatar} />
+              <span style={styles.userName}>{user.displayName || user.email}</span>
+              <button onClick={handleSignOut} style={styles.signOutButton}>
+                Sign Out
+              </button>
+            </div>
+        )}
+
+        {/* Hero Section */}
+        <div style={styles.heroSection}>
+          <div style={styles.overlay}>
+            <h1 style={styles.title}>Global News Map</h1>
+            <p style={styles.subtitle}>Trending and Popular World Events Visualization</p>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div style={styles.mapContainer}>
+          {user ? <HeatMap user={user} /> : <EmailAuth onSignIn={setUser} />}
         </div>
       </div>
-
-      {/* Heatmap Component */}
-      <div style={styles.mapContainer}>
-        <HeatMap />
-      </div>
-    </div>
   );
 }
 
-// Inline CSS for Styling
 const styles = {
   appContainer: {
     display: "flex",
@@ -28,42 +57,81 @@ const styles = {
     alignItems: "center",
     backgroundColor: "#f4f4f4",
     minHeight: "100vh",
+    position: "relative",
   },
   heroSection: {
     width: "100%",
     textAlign: "center",
-    padding: "8px 6px", // Reduced padding to make it more compact
+    padding: "40px 10px",
     backgroundImage: "url('/images/news.jpg')",
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
     position: "relative",
     color: "white",
-    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
   },
   overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Slightly reduced opacity
-    padding: "10px 15px", // Smaller padding for a more compact look
-    borderRadius: "4px",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: "20px 25px",
+    borderRadius: "8px",
     display: "inline-block",
   },
   title: {
-    fontSize: "20px", // Reduced font size slightly
+    fontSize: "32px",
     fontWeight: "bold",
     color: "#ffffff",
-    textShadow: "1px 1px 3px rgba(0,0,0,0.6)", // Adjusted shadow for readability
+    textShadow: "1px 1px 4px rgba(0,0,0,0.6)",
     margin: "0",
   },
   subtitle: {
-    fontSize: "12px", // Slightly smaller subtitle
+    fontSize: "16px",
     fontWeight: "lighter",
     color: "#f0f0f0",
-    textShadow: "1px 1px 2px rgba(0,0,0,0.4)",
-    marginTop: "3px",
+    textShadow: "1px 1px 3px rgba(0,0,0,0.4)",
+    marginTop: "8px",
   },
   mapContainer: {
     width: "100%",
-    height: "calc(100vh - 80px)", // Reduced height taken up by title bar
+    height: "calc(100vh - 160px)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  floatingUserInfo: {
+    position: "absolute",
+    top: "15px",
+    right: "25px",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(8px)",
+    padding: "6px 14px",
+    borderRadius: "20px",
+    zIndex: 10,
+    color: "#fff",
+  },
+  avatar: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    border: "1px solid #fff",
+    objectFit: "cover",
+  },
+  userName: {
+    color: "#fff",
+    fontSize: "14px",
+    fontWeight: "500",
+  },
+  signOutButton: {
+    padding: "5px 10px",
+    fontSize: "12px",
+    backgroundColor: "#ffffff",
+    color: "#000",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
   },
 };
 
