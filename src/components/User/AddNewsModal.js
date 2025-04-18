@@ -11,7 +11,6 @@ const AddNewsModal = ({ onClose }) => {
   const [category, setCategory] = useState("");
 
 
-
   const handleSubmit = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported.");
@@ -23,26 +22,39 @@ const AddNewsModal = ({ onClose }) => {
           const now = new Date();
           const isoString = now.toISOString();
           const [date, time] = isoString.split("T");
-          const formattedTime = time.split(".")[0]; // remove milliseconds
+          const formattedTime = time.split(".")[0];
+
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
 
           const payload = {
-            uri: uuidv4(), // generate unique ID
+            uri: uuidv4(),
             lang: "eng",
             isDuplicate: false,
             date,
             time: formattedTime,
             dateTime: isoString,
-            dateTimePub: isoString, // or set to another publish time if needed
+            dateTimePub: isoString,
             dataType: "news",
             sim: 0,
             url: link,
             title,
             body: summary,
-            userid: getAuth().currentUser?.uid|| "anonymous",
+            userid: getAuth().currentUser?.uid || "anonymous",
             coordinates: {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
+              lat,
+              lng,
             },
+            geoJson: {
+              type: "Location",
+              geometry: {
+                type: "Point",
+                coordinates: [lng, lat], // GeoJSON format = [longitude, latitude]
+              },
+              properties: {
+                name: "Unknown" // you can replace this with a reverse geocode API if needed
+              }
+            }
           };
 
           try {
@@ -51,11 +63,12 @@ const AddNewsModal = ({ onClose }) => {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),
             });
-            console.log("News submitted:", payload);
+
+            console.log("Submitted with geoJson:", payload);
             onClose();
           } catch (err) {
-            console.error("Error submitting:", err);
-            alert("Error submitting the news.");
+            console.error("Submission failed:", err);
+            alert("Failed to submit news.");
           }
         },
         (error) => {
