@@ -1,11 +1,32 @@
 import React, { useState, useEffect } from "react";
 import styles from "./styles";
-
+import { getAuth } from "firebase/auth";
 const PopupCard = ({ selectedNews, multipleNews, onClose, onNext }) => {
     const [userVote, setUserVote] = useState(null); // "like" | "fake" | null
     const [likes, setLikes] = useState(0);
     const [fakeFlags, setFakeFlags] = useState(0);
+    const sendVoteToBackend = async (type) => {
+        const user = getAuth().currentUser;
+        if (!user) return;
 
+        const messageId = selectedNews.properties.message_id;
+        const payload = {
+            type,
+            message_id: messageId,
+            userid: user.uid,
+        };
+
+        try {
+            await fetch("https://sqs-backend-573766487049.us-central1.run.app/user_news", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            console.log("Vote sent:", payload);
+        } catch (error) {
+            console.error("Failed to send vote:", error);
+        }
+    };
     // 🔄 Reset vote state when selected article changes
     useEffect(() => {
         setUserVote(null);
@@ -13,7 +34,7 @@ const PopupCard = ({ selectedNews, multipleNews, onClose, onNext }) => {
         setFakeFlags(selectedNews.properties.fakeflags || 0);
     }, [selectedNews]);
 
-    const handleLike = () => {
+    const handleLike = async() => {
         if (userVote === "like") {
             setLikes((prev) => prev - 1);
             setUserVote(null);
@@ -22,9 +43,10 @@ const PopupCard = ({ selectedNews, multipleNews, onClose, onNext }) => {
             setLikes((prev) => prev + 1);
             setUserVote("like");
         }
+        await sendVoteToBackend("LIKED");
     };
 
-    const handleFakeFlag = () => {
+    const handleFakeFlag = async() => {
         if (userVote === "fake") {
             setFakeFlags((prev) => prev - 1);
             setUserVote(null);
@@ -33,6 +55,7 @@ const PopupCard = ({ selectedNews, multipleNews, onClose, onNext }) => {
             setFakeFlags((prev) => prev + 1);
             setUserVote("fake");
         }
+        await sendVoteToBackend("FAKEFLAGGED");
     };
 
     return (
