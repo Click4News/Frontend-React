@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import styles from "./styles";
-import firebase from "firebase/compat";
-
+import { getAuth } from "firebase/auth";
 const PopupCard = ({ selectedNews, multipleNews, onClose, onNext }) => {
     const [userVote, setUserVote] = useState(null); // "like" | "fake" | null
     const [likes, setLikes] = useState(0);
     const [fakeFlags, setFakeFlags] = useState(0);
     const sendVoteToBackend = async (type) => {
-        const user = firebase.auth().currentUser;
+        const user = getAuth().currentUser;
         if (!user) return;
 
         const messageId = selectedNews.properties.message_id;
