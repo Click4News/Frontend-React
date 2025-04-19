@@ -63,7 +63,7 @@ const UserStatsPanel = ({ userStats = {} }) => {
           <div style={styles.sectionTable}>
             <div style={styles.tableRow}><span style={styles.tableLabel}>📝 Articles Submitted:</span><span style={styles.tableValue}>{articles}</span></div>
             <div style={styles.tableRow}><span style={styles.tableLabel}>👍 Total Likes:</span><span style={{ ...styles.tableValue, color: "#4caf50" }}>{likes}</span></div>
-            <div style={styles.tableRow}><span style={styles.tableLabel}>👎 Total Fake Flags:</span><span style={{ ...styles.tableValue, color: "#f44336" }}>{dislikes}</span></div>
+            <div style={styles.tableRow}><span style={styles.tableLabel}>🚩 Total Fake Flags:</span><span style={{ ...styles.tableValue, color: "#f44336" }}>{dislikes}</span></div>
           </div>
 
           <div style={styles.tierTable}>

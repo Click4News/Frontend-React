@@ -154,7 +154,6 @@ class HeatMap extends Component {
       clickedLocation: { longitude: lng, latitude: lat },
       sortedNearbyNews: nearbyNews,
       currentNewsIndex: 0,
-      showPopup: true,
       circleRadius: 10,
     });
 
@@ -164,7 +163,7 @@ class HeatMap extends Component {
       radius += 3;
       if (radius >= 50) {
         clearInterval(this.circleInterval);
-        this.setState({ circleRadius: 50 });
+        this.setState({ circleRadius: 50 ,showPopup: true });
       } else {
         this.setState({ circleRadius: radius });
       }

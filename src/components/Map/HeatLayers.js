@@ -45,11 +45,9 @@ const HeatLayers = ({ filteredData, clickedLocation, circleRadius }) => {
             id="circle-layer"
             type="circle"
             paint={{
-              "circle-radius": circleRadius,
-              "circle-color": "rgba(255, 255, 255, 0.3)",
-              "circle-opacity": 0.4,
-              "circle-stroke-width": 2,
-              "circle-stroke-color": "rgba(255, 255, 255, 1)",
+                "circle-radius": circleRadius,
+                "circle-color": "#e53935",    // red fill
+                "circle-opacity": 0.3         // smooth transparent fill
             }}
           />
         </Source>
