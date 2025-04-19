@@ -47,7 +47,7 @@ const AddNewsModal = ({ onClose }) => {
             geometry: { type: "Point", coordinates: [lng, lat] },
             properties: { name: "Unknown" },
           },
-          // category: "User-Generated",
+          category: "User-Generated",
         };
 
         try {
@@ -57,8 +57,13 @@ const AddNewsModal = ({ onClose }) => {
             body: JSON.stringify(payload),
           });
 
-          alert("✅ News Submitted!");
-          onClose();
+          setTimeout(() => {
+            onClose();
+          }, 50);
+
+          setTimeout(() => {
+            alert("✅ News Submitted!");
+          }, 150);
         } catch (err) {
           alert("Failed to submit news.");
           console.error(err);
