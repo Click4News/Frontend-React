@@ -6,7 +6,7 @@ import DisplayControls from "../Features/DisplayControls";
 import NewsFilters from "../Features/NewsFilters";
 import HeatLayers from "./HeatLayers";
 import PopupCard from "./PopupCard";
-import UserDetailsPanel from "../User/UserDetailsPanel";
+import UserDetailsPanel from "../User/UserStatsPanel";
 import AddNewsButton from "../User/AddNewsButton";
 
 const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
