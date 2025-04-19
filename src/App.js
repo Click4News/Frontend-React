@@ -6,17 +6,53 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 
 function App() {
   const [user, setUser] = useState(null);
+  const [userStats, setUserStats] = useState({
+    articles: 0,
+    likes: 0,
+    dislikes: 0,
+    credibility: 50,
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+      if (firebaseUser) {
+        setUser(firebaseUser);
+
+        // ✅ Simulate API call to get user stats (or fallback to default)
+        setTimeout(() => {
+          const simulatedStats = {
+            articles: Math.floor(Math.random() * 50),
+            likes: Math.floor(Math.random() * 500),
+            dislikes: Math.floor(Math.random() * 100),
+            credibility: Math.floor(50 + Math.random() * 70), // can go up to 120
+          };
+          setUserStats(simulatedStats);
+        }, 500);
+      } else {
+        setUser(null);
+        setUserStats({
+          articles: 0,
+          likes: 0,
+          dislikes: 0,
+          credibility: 50, // ✅ fallback default
+        });
+      }
     });
+
     return () => unsubscribe();
   }, []);
 
   const handleSignOut = () => {
     signOut(auth)
-      .then(() => setUser(null))
+      .then(() => {
+        setUser(null);
+        setUserStats({
+          articles: 0,
+          likes: 0,
+          dislikes: 0,
+          credibility: 50,
+        });
+      })
       .catch((error) => console.error("Error signing out:", error));
   };
 
@@ -53,7 +89,11 @@ function App() {
 
       {/* Map or Auth */}
       <div style={styles.mapContainer}>
-        {user ? <HeatMap user={user} /> : <EmailAuth onSignIn={setUser} />}
+        {user ? (
+          <HeatMap user={user} userStats={userStats} />
+        ) : (
+          <EmailAuth onSignIn={setUser} />
+        )}
       </div>
     </div>
   );
