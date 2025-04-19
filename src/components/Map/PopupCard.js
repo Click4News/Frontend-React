@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styles from "./styles";
+import styles from "../../styles";
 import { getAuth } from "firebase/auth";
 const PopupCard = ({ selectedNews, multipleNews, onClose, onNext }) => {
     const [userVote, setUserVote] = useState(null); // "like" | "fake" | null

@@ -159,13 +159,13 @@ const styles = {
     marginTop: "8px",
     display: "flex",
     flexDirection: "column",
-    gap: "12px",
+    gap: "10px",
   },
   label: {
     fontSize: "13px",
     fontWeight: "bold",
     color: "#333",
-    marginBottom: "4px",
+    marginBottom: "2px",
   },
   input: {
     width: "100%",
@@ -178,8 +178,8 @@ const styles = {
   chipContainer: {
     display: "flex",
     flexWrap: "wrap",
-    gap: "6px",
-    marginBottom: "4px",
+    gap: "4px",
+    marginBottom: "2px",
   },
   chip: {
     display: "flex",
@@ -200,12 +200,12 @@ const styles = {
     overflowY: "auto",
     border: "1px solid #ddd",
     borderRadius: "6px",
-    padding: "6px",
+    padding: "4px",
     backgroundColor: "#f9f9f9",
   },
   checkboxLabel: {
     display: "block",
-    marginBottom: "6px",
+    marginBottom: "4px",
     fontSize: "13px",
     color: "#333",
   },

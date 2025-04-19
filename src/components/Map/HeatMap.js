@@ -6,7 +6,8 @@ import DisplayControls from "../Features/DisplayControls";
 import NewsFilters from "../Features/NewsFilters";
 import HeatLayers from "./HeatLayers";
 import PopupCard from "./PopupCard";
-import AddNewsModal from "../User/AddNewsModal";
+import UserDetailsPanel from "../User/UserStatsPanel";
+import AddNewsButton from "../User/AddNewsButton";
 
 const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 
@@ -36,7 +37,6 @@ class HeatMap extends Component {
       sortedNearbyNews: [],
       currentNewsIndex: 0,
       showPopup: false,
-      showAddModal: false,
       circleRadius: 0,
       keyword: "",
       selectedCategories: [],
@@ -101,8 +101,23 @@ class HeatMap extends Component {
   };
 
   handleKeywordChange = (keyword) => this.setState({ keyword });
-
   handleCategoryChange = (selectedCategories) => this.setState({ selectedCategories });
+
+  handleResetView = () => {
+    const viewState = {
+      longitude: -105.0,
+      latitude: 39.7392,
+      zoom: viewZoomMap.world,
+    };
+    this.setState({
+      viewLevel: "world",
+      zoom: viewZoomMap.world,
+      viewState,
+    });
+    if (this.mapRef.current) {
+      this.mapRef.current.flyTo({ center: [-105.0, 39.7392], zoom: viewZoomMap.world, duration: 300 });
+    }
+  };
 
   getFilteredFeatures = () => {
     const { geoJsonData, keyword, selectedCategories } = this.state;
@@ -160,7 +175,7 @@ class HeatMap extends Component {
     const {
       theme, viewLevel, zoom, viewState,
       clickedLocation, sortedNearbyNews, currentNewsIndex,
-      showPopup, circleRadius, keyword, selectedCategories, showAddModal
+      showPopup, circleRadius, keyword, selectedCategories
     } = this.state;
 
     const selectedNews = sortedNearbyNews[currentNewsIndex];
@@ -179,13 +194,24 @@ class HeatMap extends Component {
             onThemeChange={this.handleThemeChange}
             onViewLevelChange={this.handleViewLevelChange}
             onZoomChange={this.handleZoomChange}
-            onResetView={() => this.handleViewLevelChange("world")}
+            onResetView={this.handleResetView}
           />
           <NewsFilters
             keyword={keyword}
             selectedCategories={selectedCategories}
             onKeywordChange={this.handleKeywordChange}
             onCategoryChange={this.handleCategoryChange}
+          />
+        </div>
+
+        <div style={styles.rightPanel}>
+          <UserDetailsPanel
+            userStats={{
+              articles: 17,
+              likes: 142,
+              dislikes: 9,
+              credibility: 86,
+            }}
           />
         </div>
 
@@ -219,7 +245,13 @@ class HeatMap extends Component {
               <PopupCard
                 selectedNews={selectedNews}
                 multipleNews={sortedNearbyNews.length > 1}
-                onClose={() => this.setState({ showPopup: false })}
+                onClose={() =>
+                  this.setState({
+                    showPopup: false,
+                    clickedLocation: null,
+                    circleRadius: 0,
+                  })
+                }
                 onNext={() => {
                   const nextIndex = (currentNewsIndex + 1) % sortedNearbyNews.length;
                   this.setState({ currentNewsIndex: nextIndex });
@@ -229,32 +261,7 @@ class HeatMap extends Component {
           )}
         </Map>
 
-        <button
-          onClick={() => this.setState({ showAddModal: true })}
-          style={{
-            position: "fixed",
-            bottom: "20px",
-            right: "20px",
-            backgroundColor: "#e53935",
-            color: "white",
-            border: "none",
-            borderRadius: "50%",
-            width: "56px",
-            height: "56px",
-            fontSize: "28px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            zIndex: 5,
-            boxShadow: "0px 2px 6px rgba(0,0,0,0.3)",
-          }}
-          title="Add News"
-        >
-          ➕
-        </button>
-
-        {showAddModal && (
-          <AddNewsModal onClose={() => this.setState({ showAddModal: false })} />
-        )}
+        <AddNewsButton />
       </div>
     );
   }
@@ -270,6 +277,16 @@ const styles = {
     flexDirection: "column",
     gap: "12px",
     width: "260px",
+  },
+  rightPanel: {
+    position: "absolute",
+    top: "12px",
+    right: "10px",
+    zIndex: 2,
+    width: "260px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
   },
 };
 
