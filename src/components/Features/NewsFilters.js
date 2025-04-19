@@ -44,6 +44,7 @@ const emojiCategories = {
   Technology: "💻",
   Travel: "✈️",
   Universities: "🏫",
+  "User-Generated": "📝",
   War: "💣",
   Weather: "🌦️",
   Wildlife: "🦁",
