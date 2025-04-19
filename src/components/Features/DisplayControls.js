@@ -100,7 +100,7 @@ const DisplayControls = ({
 
           <div style={styles.section}>
             <button onClick={onResetView} style={styles.resetButton}>
-              ⟳ Reset View
+              ⟳ Reset to Default View
             </button>
           </div>
         </div>
@@ -140,12 +140,12 @@ const styles = {
     marginTop: "8px",
     display: "flex",
     flexDirection: "column",
-    gap: "14px",
+    gap: "10px", // 🔽 change from 14px to 10px
   },
   section: {
     display: "flex",
     flexDirection: "column",
-    gap: "6px",
+    gap: "4px", // 🔽 tighter gap between label and control
   },
   label: {
     fontSize: "13px",
