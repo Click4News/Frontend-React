@@ -13,7 +13,7 @@ const EmailAuth = ({ onSignIn }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState("login"); // 'login' or 'register'
+  const [mode, setMode] = useState("login");
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -56,99 +56,182 @@ const EmailAuth = ({ onSignIn }) => {
   };
 
   return (
-    <div style={styles.container}>
-      <form onSubmit={handleSubmit} style={styles.card}>
-        <h2 style={styles.title}>{mode === "login" ? "Sign in" : "Join Click4News"}</h2>
-        <p style={styles.subtitle}>
-          {mode === "login"
-            ? "Stay updated on real-time global stories."
-            : "Create your account to explore breaking news by location."}
-        </p>
+    <div style={styles.wrapper}>
+      <div style={styles.collageContainer}>
+        {[1, 2, 3].map((i) => (
+          <div key={`col-left-${i}`} style={styles.sideColumn}>
+            <img
+              src={`/images/bg-landscape-${i}.jpg`}
+              alt={`left-${i}`}
+              style={styles.collageImage}
+            />
+          </div>
+        ))}
+        {[4, 5, 6].map((i) => (
+          <div key={`col-center-left-${i}`} style={styles.sideColumn}>
+            <img
+              src={`/images/bg-landscape-${i}.${i === 6 ? "webp" : "jpg"}`}
+              alt={`center-left-${i}`}
+              style={styles.collageImage}
+            />
+          </div>
+        ))}
+        {[7, 8, 9].map((i) => (
+          <div key={`col-center-right-${i}`} style={styles.sideColumn}>
+            <img
+              src={`/images/bg-landscape-${i}.${i === 7 ? "webp" : "jpg"}`}
+              alt={`center-right-${i}`}
+              style={styles.collageImage}
+            />
+          </div>
+        ))}
+        {[10, 11, 12].map((i) => (
+          <div key={`col-right-${i}`} style={styles.sideColumn}>
+            <img
+              src={`/images/bg-landscape-${i}.jpg`}
+              alt={`right-${i}`}
+              style={styles.collageImage}
+            />
+          </div>
+        ))}
+      </div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
-        />
+      <div style={styles.container}>
+        <form onSubmit={handleSubmit} style={styles.card}>
+          <h2 style={styles.title}>{mode === "login" ? "Sign in" : "Join Click4News"}</h2>
+          <p style={styles.subtitle}>
+            {mode === "login"
+              ? "Stay updated on real-time global stories."
+              : "Create your account to explore breaking news by location."}
+          </p>
 
-        <div style={styles.passwordField}>
           <input
-            type={showPwd ? "text" : "password"}
-            placeholder="Password"
+            type="email"
+            placeholder="Email"
             required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ ...styles.input, marginBottom: 0 }}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={styles.input}
           />
-          <span onClick={() => setShowPwd(!showPwd)} style={styles.showBtn}>
-            {showPwd ? "hide" : "show"}
-          </span>
-        </div>
 
-        {mode === "register" && (
           <div style={styles.passwordField}>
             <input
-              type={showConfirmPwd ? "text" : "password"}
-              placeholder="Confirm Password"
+              type={showPwd ? "text" : "password"}
+              placeholder="Password"
               required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               style={{ ...styles.input, marginBottom: 0 }}
             />
-            <span onClick={() => setShowConfirmPwd(!showConfirmPwd)} style={styles.showBtn}>
-              {showConfirmPwd ? "hide" : "show"}
+            <span onClick={() => setShowPwd(!showPwd)} style={styles.showBtn}>
+              {showPwd ? "hide" : "show"}
             </span>
           </div>
-        )}
 
-        <div style={styles.links}>
-          {mode === "login" && (
-            <span onClick={handleResetPassword} style={styles.link}>
-              Forgot password?
-            </span>
+          {mode === "register" && (
+            <div style={styles.passwordField}>
+              <input
+                type={showConfirmPwd ? "text" : "password"}
+                placeholder="Confirm Password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                style={{ ...styles.input, marginBottom: 0 }}
+              />
+              <span onClick={() => setShowConfirmPwd(!showConfirmPwd)} style={styles.showBtn}>
+                {showConfirmPwd ? "hide" : "show"}
+              </span>
+            </div>
           )}
-        </div>
 
-        {error && <p style={styles.error}>{error}</p>}
+          <div style={styles.links}>
+            {mode === "login" && (
+              <span onClick={handleResetPassword} style={styles.link}>
+                Forgot password?
+              </span>
+            )}
+          </div>
 
-        <button type="submit" style={styles.submitBtn}>
-          {mode === "login" ? "Sign in" : "Join now"}
-        </button>
+          {error && <p style={styles.error}>{error}</p>}
 
-        <div style={styles.orDivider}>
-          <span style={styles.line}></span>
-          <span style={styles.or}>or</span>
-          <span style={styles.line}></span>
-        </div>
+          <button type="submit" style={styles.submitBtn}>
+            {mode === "login" ? "Sign in" : "Join now"}
+          </button>
 
-        <button type="button" style={styles.googleBtn} onClick={handleGoogleLogin}>
-          <img
-            src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png"
-            alt="Google"
-            style={styles.googleIcon}
-          />
-          Sign in with Google
-        </button>
+          <div style={styles.orDivider}>
+            <span style={styles.line}></span>
+            <span style={styles.or}>or</span>
+            <span style={styles.line}></span>
+          </div>
 
-        <p style={styles.footer}>
-          {mode === "login" ? "New to Click4News?" : "Already a user?"}{" "}
-          <span onClick={() => setMode(mode === "login" ? "register" : "login")} style={styles.link}>
-            {mode === "login" ? "Join now" : "Sign in"}
-          </span>
-        </p>
-      </form>
+          <button type="button" style={styles.googleBtn} onClick={handleGoogleLogin}>
+            <img
+              src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png"
+              alt="Google"
+              style={styles.googleIcon}
+            />
+            Sign in with Google
+          </button>
+
+          <p style={styles.footer}>
+            {mode === "login" ? "New to Click4News?" : "Already a user?"}{" "}
+            <span onClick={() => setMode(mode === "login" ? "register" : "login")} style={styles.link}>
+              {mode === "login" ? "Join now" : "Sign in"}
+            </span>
+          </p>
+        </form>
+      </div>
     </div>
   );
 };
 
 const styles = {
-  container: {
+  wrapper: {
+    position: "relative",
     width: "100%",
+    height: "100%",
     display: "flex",
     justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+    backgroundColor: "#000",
+  },
+  collageContainer: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    zIndex: 0,
+  },
+  sideColumn: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "2px",
+    padding: "4px",
+  },
+  collageImage: {
+    width: "100%",
+    height: "auto",
+    maxHeight: "30vh",
+    minHeight: "150px",
+    objectFit: "cover",
+    borderRadius: "8px",
+    opacity: 0.85,
+    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+  },
+  container: {
+    position: "relative",
+    zIndex: 1,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
     padding: "40px 20px",
   },
   card: {

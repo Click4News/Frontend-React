@@ -185,12 +185,17 @@ const styles = {
     marginTop: "6px",
     textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
   },
+
+  // ✅ This is the updated block
   mapContainer: {
     flex: "1 1 auto",
     width: "100%",
     height: "100%",
     position: "relative",
-    overflow: "hidden",
+    overflow: "visible", // changed from "hidden"
+    display: "flex",     // added
+    justifyContent: "center", // added
+    alignItems: "center",     // added
   },
 };
 
