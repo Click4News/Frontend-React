@@ -29,9 +29,15 @@ function App() {
         })
           .then((res) => res.json())
           .then((data) => {
-            console.log("📥 Received user stats:", data);
-            setUserStats(data);
-          })
+              const formatted = {
+                articles: data.total_articles || 0,
+                likes: data.total_likes_received || 0,
+                dislikes: data.total_fakeflags_received || 0,
+                credibility: data.credibility_score || 50,
+              };
+              console.log("✅ Final formatted userStats:", formatted);
+              setUserStats(formatted);
+            })
           .catch((err) => {
             console.error("❌ Failed to fetch user stats:", err);
             setUserStats({

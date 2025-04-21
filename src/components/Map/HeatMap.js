@@ -42,7 +42,12 @@ class HeatMap extends Component {
       selectedCategories: [],
     };
   }
+  componentDidUpdate(prevProps) {
+    if (prevProps.userStats !== this.props.userStats) {
+      console.log("🔄 User stats updated in HeatMap:", this.props.userStats);
 
+    }
+  }
   componentDidMount() {
     fetch("https://fastapi-service-34404463322.us-central1.run.app/geojson")
       .then((res) => res.json())
