@@ -16,25 +16,39 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
+        console.log("✅ Logged in as:", firebaseUser.uid);
         setUser(firebaseUser);
 
-        // ✅ Simulate API call to get user stats (or fallback to default)
-        setTimeout(() => {
-          const simulatedStats = {
-            articles: Math.floor(Math.random() * 50),
-            likes: Math.floor(Math.random() * 500),
-            dislikes: Math.floor(Math.random() * 100),
-            credibility: Math.floor(50 + Math.random() * 70), // can go up to 120
-          };
-          setUserStats(simulatedStats);
-        }, 500);
+        const payload = { userid: firebaseUser.uid };
+        console.log("📦 Sending user stats request for:", payload);
+
+        fetch("https://fastapi-service-34404463322.us-central1.run.app/user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("📥 Received user stats:", data);
+            setUserStats(data);
+          })
+          .catch((err) => {
+            console.error("❌ Failed to fetch user stats:", err);
+            setUserStats({
+              articles: 0,
+              likes: 0,
+              dislikes: 0,
+              credibility: 50,
+            });
+          });
       } else {
+        console.log("🔒 User signed out or not authenticated.");
         setUser(null);
         setUserStats({
           articles: 0,
           likes: 0,
           dislikes: 0,
-          credibility: 50, // ✅ fallback default
+          credibility: 50,
         });
       }
     });
@@ -45,6 +59,7 @@ function App() {
   const handleSignOut = () => {
     signOut(auth)
       .then(() => {
+        console.log("👋 Signed out");
         setUser(null);
         setUserStats({
           articles: 0,
@@ -58,7 +73,6 @@ function App() {
 
   return (
     <div style={styles.appContainer}>
-      {/* Floating User Info */}
       {user && (
         <div style={styles.floatingUserInfo}>
           <img
@@ -77,7 +91,6 @@ function App() {
         </div>
       )}
 
-      {/* Hero Section */}
       <div style={styles.heroSection}>
         <div style={styles.overlay}>
           <h1 style={styles.title}>Global News Map</h1>
@@ -87,10 +100,9 @@ function App() {
         </div>
       </div>
 
-      {/* Map or Auth */}
       <div style={styles.mapContainer}>
         {user ? (
-          <HeatMap user={user} userStats={userStats} />
+          <HeatMap user={user} userid={user.uid} userStats={userStats} />
         ) : (
           <EmailAuth onSignIn={setUser} />
         )}
@@ -99,6 +111,7 @@ function App() {
   );
 }
 
+// ✅ Styles stay unchanged
 const styles = {
   appContainer: {
     display: "flex",
@@ -190,7 +203,10 @@ const styles = {
     width: "100%",
     height: "100%",
     position: "relative",
-    overflow: "hidden",
+    overflow: "visible",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
 };
 
