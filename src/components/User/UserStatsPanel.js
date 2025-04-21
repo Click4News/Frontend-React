@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 
 const UserStatsPanel = ({ userStats = {} }) => {
   console.log("🧩 Stats received in UserStatsPanel:", userStats);
@@ -8,7 +8,9 @@ const UserStatsPanel = ({ userStats = {} }) => {
     dislikes = 0,
     credibility = 50,
   } = userStats;
-
+  useEffect(() => {
+    console.log(" Updated userStats prop:", userStats);
+  }, [userStats]);
   const [isExpanded, setIsExpanded] = useState(true);
 
   const trustTier = (cred) => {
