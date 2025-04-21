@@ -27,6 +27,9 @@ const AddNewsModal = ({ onClose }) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
+        // If link is empty, assign a default link
+        const finalLink = link.trim() === "" ? "https://www.google.com/" : link;
+
         const payload = {
           uri: uuidv4(),
           lang: "eng",
@@ -37,7 +40,7 @@ const AddNewsModal = ({ onClose }) => {
           dateTimePub: isoString,
           dataType: "news",
           sim: 0,
-          url: link,
+          url: finalLink, // Use the final link (either provided or default)
           title,
           body: summary,
           userid: getAuth().currentUser?.uid || "anonymous",
@@ -112,21 +115,6 @@ const AddNewsModal = ({ onClose }) => {
             style={styles.input}
           />
         </div>
-
-        {/* <div style={styles.formGroup}>
-          <label style={styles.label}>Category</label>
-          <input
-            type="text"
-            value="User-Generated"
-            readOnly
-            style={{
-              ...styles.input,
-              backgroundColor: "#2b2b2b",
-              color: "#bbb",
-              cursor: "not-allowed",
-            }}
-          />
-        </div> */}
 
         <div style={styles.buttonRow}>
           <button onClick={onClose} style={styles.cancel}>
