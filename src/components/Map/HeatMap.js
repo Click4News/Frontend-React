@@ -171,6 +171,7 @@ class HeatMap extends Component {
   };
 
   render() {
+    //console.log("🛰 Received userStats in HeatMap:", this.props.userStats);
     const {
       theme, viewLevel, zoom, viewState,
       clickedLocation, sortedNearbyNews, currentNewsIndex,
@@ -204,14 +205,7 @@ class HeatMap extends Component {
         </div>
 
         <div style={styles.rightPanel}>
-          <UserDetailsPanel
-            userStats={{
-              articles: 17,
-              likes: 142,
-              dislikes: 9,
-              credibility: 86,
-            }}
-          />
+          <UserDetailsPanel userStats={this.props.userStats} />
         </div>
 
         <Map
