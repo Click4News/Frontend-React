@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 const UserStatsPanel = ({ userStats = {} }) => {
+  console.log("🧩 Stats received in UserStatsPanel:", userStats);
   const {
     articles = 0,
     likes = 0,
@@ -11,7 +12,7 @@ const UserStatsPanel = ({ userStats = {} }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const trustTier = (cred) => {
-    if (cred >= 91) return { label: "Verified Source", icon: "🛡", color: "#2e7d32" };
+    if (cred >= 81) return { label: "Verified Source", icon: "🛡", color: "#2e7d32" };
     if (cred >= 61) return { label: "Trusted Contributor", icon: "✅", color: "#43a047" };
     if (cred >= 41) return { label: "Community Voice", icon: "🗣", color: "#fbc02d" };
     if (cred >= 21) return { label: "Unreliable Source", icon: "❗", color: "#fb8c00" };
@@ -22,8 +23,8 @@ const UserStatsPanel = ({ userStats = {} }) => {
     { min: 0, max: 20, emoji: "🚩", range: "0–20", label: "Flagged Account" },
     { min: 21, max: 40, emoji: "❗", range: "21–40", label: "Unreliable Source" },
     { min: 41, max: 60, emoji: "🗣", range: "41–60", label: "Community Voice" },
-    { min: 61, max: 90, emoji: "✅", range: "61–90", label: "Trusted Contributor" },
-    { min: 91, max: 120, emoji: "🛡", range: "91–120", label: "Verified Source" }
+    { min: 61, max: 80, emoji: "✅", range: "61–80", label: "Trusted Contributor" },
+    { min: 81, max: 100, emoji: "🛡", range: "81–100", label: "Verified Source" },
   ];
 
   const { label: tierLabel, icon, color } = trustTier(credibility);
@@ -50,13 +51,13 @@ const UserStatsPanel = ({ userStats = {} }) => {
                 <div
                   style={{
                     ...styles.trustPointer,
-                    left: `calc(${Math.min(credibility / 120 * 100, 100)}% - 10px)`
+                    left: `calc(${Math.min(credibility / 100 * 100, 100)}% - 10px)`
                   }}
                 >
                   🔵
                 </div>
               </div>
-              <div style={styles.credibilityText}>{credibility} points</div>
+              <div style={styles.credibilityText}>{Math.round(credibility)} points</div>
             </div>
           </div>
 
