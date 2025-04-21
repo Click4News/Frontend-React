@@ -99,7 +99,7 @@ function App() {
 
       <div style={styles.heroSection}>
         <div style={styles.overlay}>
-          <h1 style={styles.title}>Global News Map</h1>
+          <h1 style={styles.title}>Click4News</h1>
           <p style={styles.subtitle}>
             Trending and Popular World Events Visualization
           </p>
